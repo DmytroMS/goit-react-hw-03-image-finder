@@ -8,6 +8,9 @@ import Modal from "./components/Modal/Modal";
 import { getPictures } from "./servises/api-services";
 import Loader from "react-loader-spinner";
 import s from "./App.module.css";
+import { ToastContainer, Flip, toast } from 'react-toastify';
+ import 'react-toastify/dist/ReactToastify.css';
+
 
 class App extends Component {
   state = {
@@ -27,6 +30,10 @@ class App extends Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
+    if (this.state.query.trim() === '') {
+       toast.warn('Please, specify your search');
+      return;
+    }
     getPictures(this.state.query, 1).then((res) =>
       // console.log('res', res)
       this.setState({
@@ -83,11 +90,16 @@ class App extends Component {
 
     return (
       <div className={s.App}>
+
         <Searchbar
           query={this.state.query}
           handleChange={this.handleChangeQuery}
           onSubmit={this.handleSubmit}
         />
+        <ToastContainer position="top-right"
+          transition={Flip}
+          autoClose={3000}
+          theme={'dark'}/>
         <ImageGallery
           images={this.state.images}
           toggleModal={this.toggleModal}
@@ -107,6 +119,8 @@ class App extends Component {
             />
           )}
         </div>
+
+   
 
         {showModal && (
           <Modal onClose={this.toggleModal}>
