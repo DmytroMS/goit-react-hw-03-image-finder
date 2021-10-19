@@ -6,13 +6,16 @@ import { Component } from "react";
 // import Loader from "./components/Loader/Loader";
 import Modal from "./components/Modal/Modal";
 import { getPictures } from "./servises/api-services";
+import Loader from "react-loader-spinner";
 
 class App extends Component {
   state = {
     query: "",
     images: [],
     showModal: false,
-    largeImageURL: '',
+    largeImageURL: "",
+    page: "",
+    isLoading: false,
   };
 
   handleChangeQuery = (e) => {
@@ -24,26 +27,59 @@ class App extends Component {
   handleSubmit = (e) => {
     e.preventDefault();
     getPictures(this.state.query, 1).then((res) =>
-      //  console.log('res', res)
+      // console.log('res', res)
       this.setState({
         images: res,
         largeImageURL: res.largeImageURL,
+        page: 1,
       })
     );
   };
 
   toggleModal = () => {
-    this.setState(state  => ({
+    this.setState((state) => ({
       showModal: !state.showModal,
     }));
   };
 
   handleSetLargeImageURL = (largeImageURL) => {
     this.setState(largeImageURL);
-}
+  };
+
+  loadMorePicsBttn = () => {
+    const { page, query } = this.state;
+    const options = { query, page };
+
+    this.setState({ isLoading: true });
+
+    getPictures(options)
+      .then((hits) =>
+        this.setState((prevState) => ({
+          images: [...prevState.images, ...hits],
+          page: prevState.page + 1,
+        }))
+      )
+      .catch((error) => this.setState({ error }))
+      .finally(() => {
+        return this.setState({ isLoading: false });
+      });
+  };
+
+  componentDidUpdate(prevState) {
+    const { page } = this.state;
+
+    if (page > 1) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }
+
 
   render() {
-    const { showModal, largeImageURL } = this.state;
+    const { showModal, largeImageURL, isLoading, images } = this.state;
+    const renderLoadMoreBttn = images.length > 0 && !isLoading;
 
     return (
       <div>
@@ -58,11 +94,20 @@ class App extends Component {
           handleSetLargeImageURL={this.handleSetLargeImageURL}
         />
 
-        <Button />
-        {/* <Loader /> */}
+        {renderLoadMoreBttn && <Button onLoadMore={this.loadMorePicsBttn} />}
+
+        {isLoading && (
+          <Loader
+            type="Rings"
+            color="#00BFFF"
+            height={100}
+            width={100}
+            timeout={3000}
+          />
+        )}
+
         {showModal && (
-          <Modal
-            onClick={this.toggleModal}>
+          <Modal onClose={this.toggleModal}>
             <img src={largeImageURL} alt="" />
           </Modal>
         )}
@@ -72,3 +117,4 @@ class App extends Component {
 }
 
 export default App;
+
