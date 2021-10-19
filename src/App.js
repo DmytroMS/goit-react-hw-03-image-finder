@@ -7,6 +7,7 @@ import { Component } from "react";
 import Modal from "./components/Modal/Modal";
 import { getPictures } from "./servises/api-services";
 import Loader from "react-loader-spinner";
+import s from "./App.module.css";
 
 class App extends Component {
   state = {
@@ -76,13 +77,12 @@ class App extends Component {
     }
   }
 
-
   render() {
     const { showModal, largeImageURL, isLoading, images } = this.state;
     const renderLoadMoreBttn = images.length > 0 && !isLoading;
 
     return (
-      <div>
+      <div className={s.App}>
         <Searchbar
           query={this.state.query}
           handleChange={this.handleChangeQuery}
@@ -96,15 +96,17 @@ class App extends Component {
 
         {renderLoadMoreBttn && <Button onLoadMore={this.loadMorePicsBttn} />}
 
-        {isLoading && (
-          <Loader
-            type="Rings"
-            color="#00BFFF"
-            height={100}
-            width={100}
-            timeout={3000}
-          />
-        )}
+        <div className={s.loaderwrapper}>
+          {isLoading && (
+            <Loader
+              type="Rings"
+              color="#00BFFF"
+              height={100}
+              width={100}
+              timeout={3000}
+            />
+          )}
+        </div>
 
         {showModal && (
           <Modal onClose={this.toggleModal}>
@@ -117,4 +119,3 @@ class App extends Component {
 }
 
 export default App;
-
