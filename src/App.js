@@ -1,48 +1,57 @@
 import Searchbar from "./components/Searchbar/Searchbar";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
-// import ImageGalleryItem from "./components/ImageGalleryItem/ImageGalleryItem";
 import Button from "./components/Button/Button";
 import { Component } from "react";
-// import Loader from "./components/Loader/Loader";
 import Modal from "./components/Modal/Modal";
 import { getPictures } from "./servises/api-services";
 import Loader from "react-loader-spinner";
 import s from "./App.module.css";
-import { ToastContainer, Flip, toast } from 'react-toastify';
- import 'react-toastify/dist/ReactToastify.css';
-
+import { ToastContainer, Flip } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 class App extends Component {
   state = {
     query: "",
-    images: [],
+    hits: [],
     showModal: false,
     largeImageURL: "",
     page: 1,
     isLoading: false,
   };
 
-  handleChangeQuery = (e) => {
-    this.setState({
-      [e.currentTarget.name]: e.currentTarget.value,
-    });
+  handleSearchForm = (query) => {
+    this.setState({ query });
   };
 
-  handleSubmit = (e) => {
-    e.preventDefault();
-    if (this.state.query.trim() === '') {
-       toast.warn('Please, specify your search');
-      return;
+  componentDidUpdate(prevProps, prevState) {
+    const prevQuery = prevState.query;
+    const nextQuery = this.state.query;
+    const page = this.state.page;
+
+    if (nextQuery !== prevQuery) {
+      this.setState({ page: 1, hits: [] });
+      this.getImages({ nextQuery: nextQuery, page: 1 });
     }
-    this.setState({ page: 1 });
-    getPictures(this.state.query, this.state.page).then((res) =>
-      // console.log('res', res.page)
-      this.setState({
-        images: res,
-        largeImageURL: res.largeImageURL,
-        page:  this.state.page + 1,
+
+    if (page !== prevState.page && page !== 1) {
+      this.getImages({ nextQuery: nextQuery, page: page });
+    }
+  }
+
+  getImages = (nextQuery, page) => {
+    getPictures(nextQuery, page)
+      .then((data) => {
+        this.setState((prevState) => ({
+          hits: [...prevState.hits, ...data],
+        }));
       })
-    );
+      .then(() => {
+        return window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "smooth",
+        });
+      })
+      .catch((error) => this.setState({ error, status: "rejected" }));
   };
 
   toggleModal = () => {
@@ -56,56 +65,28 @@ class App extends Component {
   };
 
   loadMorePicsBttn = () => {
-    const page = this.state.page;
-    const query = this.state.query
-    // const { page, query } = this.state;
-    // const options = { query, page };
-
     this.setState({ isLoading: true });
-    console.log('page', page);
-    console.log('query', query );
-    getPictures(query,page)
-      .then((hits) =>
-        this.setState((prevState) => ({
-          images: [...prevState.images, ...hits],
-          page: prevState.page + 1,
-        }))
-      )
-      .catch((error) => this.setState({ error }))
-      .finally(() => {
-        return this.setState({ isLoading: false });
-      });
+    this.setState((prevState) => ({
+      page: prevState.page + 1,
+    }));
+   this.setState({ isLoading: false });
   };
 
-  componentDidUpdate(prevState) {
-    const { page } = this.state;
-
-    if (page > 2) {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }
-
   render() {
-    const { showModal, largeImageURL, isLoading, images } = this.state;
-    const renderLoadMoreBttn = images.length > 0 && !isLoading;
+    const { showModal, largeImageURL, isLoading, hits } = this.state;
+    const renderLoadMoreBttn = hits.length > 0 && !isLoading;
 
     return (
       <div className={s.App}>
-
-        <Searchbar
-          query={this.state.query}
-          handleChange={this.handleChangeQuery}
-          onSubmit={this.handleSubmit}
-        />
-        <ToastContainer position="top-right"
+        <Searchbar onSubmit={this.handleSearchForm} />
+        <ToastContainer
+          position="top-right"
           transition={Flip}
           autoClose={3000}
-          theme={'dark'}/>
+          theme={"dark"}
+        />
         <ImageGallery
-          images={this.state.images}
+          images={hits}
           toggleModal={this.toggleModal}
           handleSetLargeImageURL={this.handleSetLargeImageURL}
         />
@@ -123,8 +104,6 @@ class App extends Component {
             />
           )}
         </div>
-
-   
 
         {showModal && (
           <Modal onClose={this.toggleModal}>

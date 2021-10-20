@@ -1,18 +1,39 @@
 import react, { Component } from "react";
+import { toast } from "react-toastify";
 
 class Searchbar extends Component {
+  state = {
+    query: "",
+  };
+
+  handleChangeQuery = (e) => {
+    this.setState({ query: e.currentTarget.value.toLowerCase() });
+    // [e.currentTarget.name]: e.currentTarget.value,
+  };
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (this.state.query.trim() === "") {
+      return toast.warn("Please, specify your search");
+    }
+    this.props.onSubmit(this.state.query);
+    this.setState({
+      query: "",
+    });
+  };
+
   render() {
     return (
       <header className="Searchbar">
-        <form onSubmit={this.props.onSubmit} className="SearchForm">
+        <form onSubmit={this.handleSubmit} className="SearchForm">
           <button type="submit" className="SearchForm-button">
             <span className="SearchForm-button-label">Search</span>
           </button>
 
           <input
-            value={this.props.query}
-            onChange={this.props.handleChange}
-            name="query"
+            value={this.state.query}
+            onChange={this.handleChangeQuery}
             className="SearchForm-input"
             type="text"
             autoComplete="off"
