@@ -34,6 +34,7 @@ class App extends Component {
        toast.warn('Please, specify your search');
       return;
     }
+    this.setState({ page: 1 });
     getPictures(this.state.query, this.state.page).then((res) =>
       // console.log('res', res.page)
       this.setState({
@@ -55,12 +56,15 @@ class App extends Component {
   };
 
   loadMorePicsBttn = () => {
-    const { page, query } = this.state;
-    const options = { query, page };
+    const page = this.state.page;
+    const query = this.state.query
+    // const { page, query } = this.state;
+    // const options = { query, page };
 
     this.setState({ isLoading: true });
-    console.log('options', options);
-    getPictures(options)
+    console.log('page', page);
+    console.log('query', query );
+    getPictures(query,page)
       .then((hits) =>
         this.setState((prevState) => ({
           images: [...prevState.images, ...hits],
