@@ -18,7 +18,7 @@ class App extends Component {
     images: [],
     showModal: false,
     largeImageURL: "",
-    page: "",
+    page: 1,
     isLoading: false,
   };
 
@@ -34,12 +34,12 @@ class App extends Component {
        toast.warn('Please, specify your search');
       return;
     }
-    getPictures(this.state.query, 1).then((res) =>
-      // console.log('res', res)
+    getPictures(this.state.query, this.state.page).then((res) =>
+      // console.log('res', res.page)
       this.setState({
         images: res,
         largeImageURL: res.largeImageURL,
-        page: 1,
+        page:  this.state.page + 1,
       })
     );
   };
@@ -59,7 +59,7 @@ class App extends Component {
     const options = { query, page };
 
     this.setState({ isLoading: true });
-
+    console.log('options', options);
     getPictures(options)
       .then((hits) =>
         this.setState((prevState) => ({
@@ -76,7 +76,7 @@ class App extends Component {
   componentDidUpdate(prevState) {
     const { page } = this.state;
 
-    if (page > 1) {
+    if (page > 2) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: "smooth",
